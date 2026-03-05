@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LQ Quizzes</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap");
+
+        :root {
+            --bg: #080808;
+            --panel: #111111;
+            --accent: #00f2ff;
+            --card: #151515;
+            --border: #222222;
+            --text-main: #e0e0e0;
+            --text-dim: #777777;
+        }
+
+        * {
+            transition: all 0.25s ease;
+            border-color: var(--border);
+            user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .middle-header {
+            background: var(--bg);
+            color: var(--text-main);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            transform: translateX(-100%);
+            position: absolute;
+            height: 100%;
+            z-index: 50;
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+            position: relative;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            position: relative;
+        }
+
+        .main-content.squish {
+            margin-right: 400px;
+        }
+
+        #customModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-box {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .input-dark {
+            background: #1a1a1a;
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            width: 100%;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .input-dark:focus {
+            border-color: var(--accent);
+            background: #222;
+        }
+
+        .inspector {
+            width: 400px;
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100%;
+            transform: translateX(100%);
+            z-index: 40;
+            padding: 0 2.5rem 2.5rem 2.5rem;
+            overflow-y: auto;
+        }
+
+        .inspector.active {
+            transform: translateX(0);
+        }
+
+        #insHeader {
+            background: var(--panel);
+        }
+
+        .h-large {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        .h-medium {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .text-tiny {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+        }
+
+        .glass-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 750px;
+            margin-bottom: 1rem;
+        }
+
+        .option-box {
+            background: #1a1a1a;
+            border: 1px solid transparent;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .option-box:hover {
+            border-color: var(--accent);
+            background: #222;
+        }
+
+        .option-box.selected {
+            background: rgba(0, 242, 255, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: #000;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #toast.show {
+            opacity: 1;
+            bottom: 3rem;
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #222;
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .bar-wrap {
+            background: #222;
+            height: 8px;
+            border-radius: 4px;
+            flex: 1;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #000;
+            font-weight: 800;
+            border-radius: 12px;
+            padding: 1rem;
+            transition: 0.2s;
+        }
+
+        .btn-accent:active {
+            transform: scale(0.97);
+        }
+
+        /* ===== QUIZ ID + SHARE ===== */
+
+        .quiz-id {
+            cursor: pointer;
+        }
+
+        .quiz-id:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .quiz-wrapper {
+            position: relative;
+        }
+
+        .share-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .quiz-wrapper:hover .share-btn {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="toast">Copied</div>
+    <div id="customModal">
+        <div class="modal-box">
+            <h3 class="h-medium mb-4">Admin Security</h3>
+            <input type="password" id="adminKeyInput" class="input-dark mb-4" placeholder="Enter Security Key" /><button
+                onclick="verifyAdmin()" class="btn-accent w-full">
+                Access Panel</button><button onclick="hideModal()" class="w-full mt-2 text-tiny py-2 opacity-50">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <div id="deleteModal"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="modal-box">
+            <h3 class="h-medium mb-2 text-red-400">Delete Quiz?</h3>
+            <p id="deleteMeta" class="text-sm text-zinc-400 mb-4">Loading...</p>
+            <div class="flex gap-4">
+                <button onclick="closeDeleteModal()"
+                    class="flex-1 border border-zinc-700 py-2 rounded-xl">Cancel</button>
+                <button id="deleteConfirmBtn" class="flex-1 btn-accent py-2">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="quickStartModal" style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(5px);
+        z-index: 300;
+        align-items: center;
+        justify-content: center;
+      ">
+        <div class="modal-box text-center">
+            <h3 id="quickTitle" class="h-medium mb-4"></h3>
+            <p id="quickText" class="mb-6 text-sm opacity-70"></p>
+            <div class="flex gap-4">
+                <button onclick="closeQuickStart()" class="flex-1 border border-zinc-700 py-3 rounded-xl">
+                    Cancel
+                </button>
+                <button onclick="confirmQuickStart()" class="flex-1 btn-accent py-3">
+                    Open
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <aside id="sidebar" class="sidebar flex flex-col">
+        <div class="p-6 border-b flex justify-between items-center">
+            <h2 class="text-tiny">LQ Quizzes</h2>
+
+            <button onclick="verifyAdmin(adminPass)" class="p-2 rounded-lg bg-zinc-900 hover:text-accent">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 1 .908-.418A4 4 0 1 0 8 4V2.5a.5.5 0 0 1 .854-.354l2 2a.5.5 0 0 1 0 .708l-2 2A.5.5 0 0 1 8 6.5V5a3 3 0 1 1-2.546 1.586.5.5 0 1 1 .908-.418A2 2 0 1 0 8 6V7.5a.5.5 0 0 1-.854.354l-2-2a.5.5 0 0 1 0-.708l2-2A.5.5 0 0 1 8 3z" />
+                </svg>
+            </button>
+        </div>
+        <div id="quizList" class="flex-1 overflow-y-auto p-4 space-y-2"></div>
+        <div class="p-4 border-t">
+            <button onclick="openQuizCreator()"
+                class="w-full border border-zinc-800 py-3 rounded-xl text-xs hover:border-accent">
+                + Create Quiz
+            </button>
+        </div>
+
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header id="mainHeader" class="p-6 border-b flex justify-between items-center bg-black/20 backdrop-blur-md">
+            <h1 class="h-medium text-accent italic">LQ QUIZZES</h1>
+            <button id="authBtn" onclick="showModal()"
+                class="text-tiny border border-zinc-800 px-6 py-2 rounded-full hover:border-white">
+                Admin Login
+            </button>
+        </header>
+        <div id="stage" class="flex-1 overflow-y-auto flex flex-col items-center px-10 pb-10 no-scrollbar">
+            <div id="welcomeBox" class="w-full max-w-xs space-y-4 text-center mt-20">
+                <h2 class="h-large mb-6">Portal</h2>
+                <input type="text" id="studentName" placeholder="Student Name" class="input-dark" />
+                <input type="text" id="quizIdInput" placeholder="Quiz ID" class="input-dark" />
+                <button onclick="startQuiz()" class="btn-accent w-full mt-4">
+                    JOIN SESSION
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <aside id="inspector" class="inspector">
+        <div id="insHeader" class="sticky top-0 z-10"></div>
+        <div id="ansList" class="mt-8 space-y-6"></div>
+    </aside>
+
+    <script>
+        const API =
+            "https://script.google.com/macros/s/AKfycbwxEge5qjsqpoL728LmeKYXSS1-rdt68KMg5YECLmu5dqNgdW2pbGxpzeVbId_vJSR5/exec";
+        let adminPass = "";
+        let resultsData = [];
+
+        // ===== AUTO NAME SAVE =====
+        const nameInput = document.getElementById("studentName");
+
+        // Load saved name
+        const savedNameLocal = localStorage.getItem("lq_student_name");
+        if (savedNameLocal) {
+            nameInput.value = savedNameLocal;
+        }
+
+        // Save while typing
+        nameInput.addEventListener("input", () => {
+            localStorage.setItem("lq_student_name", nameInput.value.trim());
+        });
+
+        function showToast(m) {
+            const t = document.getElementById("toast");
+            t.innerText = m;
+            t.classList.add("show");
+            setTimeout(() => t.classList.remove("show"), 2000);
+        }
+        function showLoading() {
+            document.getElementById("stage").innerHTML =
+                `<div class="h-full flex items-center justify-center"><div class="loader"></div></div>`;
+        }
+        function showModal() {
+            if (adminPass) {
+                verifyAdmin(adminPass);
+                return;
+            }
+            document.getElementById("customModal").style.display = "flex";
+        }
+        function hideModal() {
+            document.getElementById("customModal").style.display = "none";
+        }
+
+        async function verifyAdmin(pOverride) {
+            const p = pOverride || document.getElementById("adminKeyInput").value;
+            hideModal();
+            showLoading();
+            const r = await fetch(`${API}?action=adminAuth&pass=${p}`);
+            const d = await r.json();
+            if (d.status === "success") {
+                adminPass = p;
+                resultsData = d.quizzes;
+                document.getElementById("mainHeader").style.display = "none";
+                document.getElementById("sidebar").classList.add("active");
+                document.getElementById("stage").innerHTML =
+                    `<div class="mt-20 text-center opacity-40"><h2 class="h-medium">ADMIN PANEL</h2><p class="text-tiny mt-2">Select quiz for analytics</p></div>`;
+                renderSidebar();
+            } else alert("Invalid Key");
+        }
+
+        function renderSidebar() {
+            document.getElementById("quizList").innerHTML = resultsData
+                .map(
+                    (q) => `
+        <div onclick="loadAnalytics('${q.id}')" class="cursor-pointer quiz-wrapper p-4 bg-zinc-900/50 rounded-xl border border-transparent hover:border-accent">
+            <div>
+                <p class="font-bold text-sm">${q.name}</p>
+                
+            </div>
+
+            <div class="share-btn"
+                 onclick="shareQuiz(event,'${q.id}')">
+                 🔗
+            </div>
+        </div>
+        
+        `,
+                )
+                .join("");
+        }
+
+        function openQuizCreator() {
+            document.getElementById("stage").innerHTML = `
+  <div class="flex flex-col w-full max-w-5xl h-screen mx-auto pt-4">
+
+      <!-- HEADER -->
+      <div class="border-b border-zinc-800 py-4 px-4 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-zinc-900 rounded-t-lg">
+          <h2 class="h-medium text-xl text-accent mb-2 sm:mb-0">Create Quiz</h2>
+          <span class="text-tiny text-zinc-400 uppercase tracking-wide">Admin Tool</span>
+      </div>
+
+      <!-- FULL-SCREEN TEXTAREA -->
+      <textarea
+        id="rawInput"
+        placeholder="Quiz Title
+open
+Question | A | B | C | D | Correct"
+        class="input-dark flex-1 w-full resize-none p-4 text-sm mt-2 border-b border-zinc-800 rounded-lg min-h-[200px] sm:min-h-[300px]"
+      ></textarea>
+
+      <!-- BOTTOM TOOL BAR -->
+      <div class="flex flex-col sm:flex-row gap-4 mt-4">
+
+          <!-- AI TOOL BOX -->
+          <div class="flex-1 flex items-center justify-between sm:justify-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-accent cursor-pointer px-2 py-1">
+              <span class="px-2 py-1 text-tiny opacity-50 whitespace-nowrap">AI</span>
+              <input
+                type="number"
+                id="qCount"
+                value="10"
+                class="px-2 py-1 bg-transparent outline-none text-center text-sm text-white w-16"
+              >
+              <button
+                onclick="copyAiPrompt()"
+                class="px-2 py-1 text-lg hover:text-accent"
+              >🤖</button>
+          </div>
+
+          <!-- SUBMIT BUTTON -->
+          <button
+            onclick="createQuiz()"
+            class="flex-1 btn-accent py-3 text-sm font-bold w-full sm:w-auto"
+          >
+            Submit
+          </button>
+
+      </div>
+
+  </div>
+  `;
+        }
+
+        function loadAnalytics(id) {
+            const quiz = resultsData.find((q) => q.id === id);
+
+            // Filter out users where all answers are empty/N/A
+            const activeParticipants = quiz.results.filter((s) => {
+                // Check if at least one answer exists and is not an empty string
+                return Object.values(s.answers).some(
+                    (ans) => ans.val && ans.val.trim() !== "",
+                );
+            });
+
+            // Update the Header with the dynamic count of ACTIVE participants
+            document.getElementById("stage").innerHTML = `
+<div class="middle-header sticky top-0 z-20 w-full max-w-4xl border-b border-zinc-900 pb-3 mb-8 pt-4 flex items-center gap-3 flex-wrap">
+
+    <h2 class="h-medium text-xl md:text-2xl whitespace-nowrap">${quiz.name}</h2>
+
+    <span class="text-tiny text-accent cursor-pointer"
+        onclick="copyQuizId(event,'${quiz.id}')">
+        ${quiz.id}
+    </span>
+
+    <button onclick="confirmDeleteQuiz('${quiz.id}')"
+        class="text-red-500 hover:text-red-400 text-sm">
+        🗑️
+    </button>
+
+    <button onclick="shareQuiz(event,'${quiz.id}')"
+        class="text-sm">
+        🔗
+    </button>
+
+    <div class="ml-auto flex items-center gap-2">
+        <span class="text-tiny">Participants</span>
+        <span class="h-medium text-2xl text-accent">
+            ${activeParticipants.length}
+        </span>
+    </div>
+
+</div>
+
+<div id="grid" class="w-full max-w-4xl space-y-2"></div>
+`;
+
+            // Render cards only for those who actually answered something
+            document.getElementById("grid").innerHTML = activeParticipants
+                .map((s) => {
+                    // We need to find the original index in the resultsData array
+                    // so that inspectStudent(qId, userIdx) still points to the right person
+                    const originalIndex = quiz.results.indexOf(s);
+
+                    return `
+                <div class="flex items-center p-4 bg-zinc-900/40 rounded-xl border border-zinc-800 cursor-pointer hover:border-accent" 
+                     onclick="inspectStudent('${id}', ${originalIndex})">
+                    <span class="w-40 font-bold truncate">${s.userName}</span>
+                    <div class="bar-wrap">
+                        <div class="bar-fill" style="width:${(s.score / s.total) * 100}%"></div>
+                    </div>
+                    <span class="w-16 text-right font-black text-accent">${s.score}/${s.total}</span>
+                </div>`;
+                })
+                .join("");
+        }
+
+        function inspectStudent(qId, userIdx) {
+            const s = resultsData.find((q) => q.id === qId).results[userIdx];
+            document.querySelector(".main-content").classList.add("squish");
+            document.querySelector(".inspector").classList.add("active");
+            document.getElementById("insHeader").innerHTML = `
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b pt-4 pb-4 px-2 sm:px-0">
+
+    <!-- Left Section -->
+    <div class="truncate w-full sm:w-auto mb-2 sm:mb-0">
+        <h3 class="h-medium text-2xl truncate">${s.userName}</h3>
+    </div>
+
+    <!-- Right Section -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+
+        <div class="text-right w-full sm:w-auto">
+            <h4 class="h-medium text-3xl text-green-400">
+                ${s.score}/${s.total}
+            </h4>
+        </div>
+
+        <!-- Close Button -->
+        <button onclick="closeInspector()"
+            class="text-zinc-400 hover:text-white text-2xl self-start sm:self-auto">
+            ✕
+        </button>
+
+    </div>
+
+</div>
+`;
+            document.getElementById("ansList").innerHTML = Object.entries(s.answers)
+                .map(
+                    ([q, a]) =>
+                        `<div><p class="text-tiny text-zinc-600 mb-1">${q}</p><p class="text-sm font-bold ${a.val.toLowerCase() === a.correct.toLowerCase() ? "text-accent" : "text-red-500"}">${a.val || "N/A"}</p></div>`,
+                )
+                .join("");
+        }
+
+        function closeInspector() {
+            document.querySelector(".main-content").classList.remove("squish");
+            document.querySelector(".inspector").classList.remove("active");
+        }
+
+        async function createQuiz() {
+            const bulk = document.getElementById("rawInput").value;
+            if (!bulk) return;
+            showToast("Deploying...");
+            await fetch(API, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({ action: "createQuiz", bulkText: bulk }),
+            });
+            document.getElementById("rawInput").value = "";
+            showToast("Success!");
+            setTimeout(() => verifyAdmin(adminPass), 1500);
+        }
+
+        async function startQuiz() {
+            const id = document.getElementById("quizIdInput").value;
+            const n = document.getElementById("studentName").value;
+            if (!id || !n) {
+                alert("Please enter both Name and Quiz ID");
+                return;
+            }
+
+            showLoading();
+
+            // Pass both ID and UserName to the backend for verification
+            const r = await fetch(
+                `${API}?id=${id}&userName=${encodeURIComponent(n)}`,
+            );
+            const d = await r.json();
+
+            if (d.status === "open") {
+                document.getElementById("stage").innerHTML = `
+            <h2 class="h-medium mb-10 text-accent">${d.name}</h2>
+            <div class="w-full flex flex-col items-center">
+                ${d.questions
+                        .map(
+                            (q, i) => `
+                    <div class="glass-card" data-q="${q.text}">
+                        <span class="text-tiny">Question ${i + 1}</span>
+                        <h3 class="text-xl font-bold mt-2 mb-6">${q.text}</h3>
+                        <div class="grid gap-2">
+                            ${["a", "b", "c", "d"]
+                                    .map(
+                                        (opt) => `
+                                <div class="option-box" onclick="sel(this)">${q[opt]}</div>
+                            `,
+                                    )
+                                    .join("")}
+                        </div>
+                    </div>`,
+                        )
+                        .join("")}
+                <button onclick="submitQuiz('${id}', '${n}')" class="btn-accent px-12 py-4 mt-8">SUBMIT QUIZ</button>
+            </div>`;
+            } else {
+                // If the backend returns "already submitted" or "not found", show the error
+                alert(d.message || "Quiz not found");
+                location.reload(); // Reset the page
+            }
+        }
+
+        function sel(el) {
+            el.parentElement
+                .querySelectorAll(".option-box")
+                .forEach((b) => b.classList.remove("selected"));
+            el.classList.add("selected");
+        }
+
+        function copyAiPrompt() {
+            const n = document.getElementById("qCount").value;
+            const p = `Act as LQ Quiz Generator. Convert source to exactly ${n} questions. Return ONLY raw text.\nFormat:\nQuiz Title\nopen\nQuestion | Opt A | Opt B | Opt C | Opt D | Correct Answer Text\n\nSource: ${document.getElementById("rawInput").value}`;
+            navigator.clipboard.writeText(p);
+            showToast("Prompt Copied");
+        }
+
+        async function submitQuiz(id, name) {
+            const answers = {};
+            document.querySelectorAll(".glass-card").forEach((c) => {
+                const s = c.querySelector(".option-box.selected");
+                if (s) answers[c.getAttribute("data-q")] = s.innerText;
+            });
+            showLoading();
+            await fetch(API, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    action: "submit",
+                    quizId: id,
+                    userName: name,
+                    answers,
+                }),
+            });
+            document.getElementById("stage").innerHTML =
+                `<h2 class="h-medium mt-20 text-accent">SUCCESSFULLY SUBMITTED</h2>`;
+        }
+
+        // ===== QUICK START SYSTEM =====
+        let quickQuizData = null;
+
+        function closeQuickStart() {
+            document.getElementById("quickStartModal").style.display = "none";
+        }
+
+        function confirmQuickStart() {
+            const savedName = localStorage.getItem("lq_student_name");
+            closeQuickStart();
+            startQuizAuto(quickQuizData.id, savedName);
+        }
+
+        function startQuizAuto(id, name) {
+            document.getElementById("studentName").value = name;
+            document.getElementById("quizIdInput").value = id;
+            startQuiz();
+        }
+
+        async function checkUrlQuiz() {
+            const params = new URLSearchParams(window.location.search);
+            const quizId = params.get("id");
+            const savedName = localStorage.getItem("lq_student_name");
+
+            if (!quizId || !savedName) return;
+
+            document.getElementById("quizIdInput").value = quizId;
+
+            try {
+                const r = await fetch(
+                    `${API}?id=${quizId}&userName=${encodeURIComponent(savedName)}`,
+                );
+                const d = await r.json();
+
+                if (d.status === "open") {
+                    quickQuizData = { id: quizId, name: d.name };
+
+                    document.getElementById("quickTitle").innerText =
+                        `Hey ${savedName}!`;
+                    document.getElementById("quickText").innerText =
+                        `Want to solve quiz "${d.name}"?`;
+
+                    document.getElementById("quickStartModal").style.display = "flex";
+                }
+            } catch (e) {
+                console.log("Auto check failed");
+            }
+        }
+
+        function copyQuizId(e, id) {
+            e.stopPropagation();
+            navigator.clipboard.writeText(id);
+            showToast("Quiz ID Copied");
+        }
+
+        function shareQuiz(e, id) {
+            e.stopPropagation();
+            const link = `https://lqquiz.vercel.app/?id=${id}`;
+            navigator.clipboard.writeText(link);
+            showToast("Share Link Copied");
+        }
+
+        function confirmDeleteQuiz(id) {
+            const quiz = resultsData.find(q => q.id === id);
+            if (!quiz) return;
+
+            document.getElementById("deleteMeta").innerHTML = `
+            <strong>ID:</strong> ${quiz.id} <br>
+            <strong>Name:</strong> ${quiz.name} <br>
+            <strong>Participants:</strong> ${quiz.results.filter(r => Object.values(r.answers).some(a => a.val)).length}
+        `;
+
+            const btn = document.getElementById("deleteConfirmBtn");
+            btn.onclick = () => deleteQuiz(id);
+
+            document.getElementById("deleteModal").style.display = "flex";
+        }
+
+        function closeDeleteModal() {
+            document.getElementById("deleteModal").style.display = "none";
+        }
+
+        async function deleteQuiz(id) {
+            closeDeleteModal();
+            showToast("Deleting quiz...");
+            try {
+                await fetch(API, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify({ action: "deleteQuiz", quizId: id, pass: adminPass })
+                });
+
+
+                showToast("Quiz deleted!");
+                // Refresh sidebar and stage
+                verifyAdmin(adminPass);
+            } catch (err) {
+                alert("Failed to delete quiz: " + err);
+            }
+        }
+
+        window.addEventListener("load", checkUrlQuiz);
+    </script>
+</body>
+
+</html>
