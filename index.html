@@ -677,7 +677,37 @@ Question | A | B | C | D | Correct"
 
         function copyAiPrompt() {
             const n = document.getElementById("qCount").value;
-            const p = `Act as Strick Patterned Quiz Generator. Convert source to exactly ${n} questions. Return ONLY raw text.\nFormat:\nQuiz Title\nopen\nQuestion | Opt A | Opt B | Opt C | Opt D | Correct Answer Text\n\nSource: ${document.getElementById("rawInput").value}`;
+            const source = document.getElementById("rawInput").value;
+
+            const p = `Act as a STRICT Patterned Quiz Generator.
+
+                        Your task is to convert the given Source into EXACTLY ${n} multiple-choice questions.
+
+                        CRITICAL RULES:
+                        1. Output ONLY raw text.
+                        2. Do NOT add explanations, notes, greetings, or extra sentences.
+                        3. Do NOT wrap the result in code blocks.
+                        4. Do NOT number the questions.
+                        5. Each question must be on a new line.
+                        6. Each question must follow the EXACT structure below.
+                        7. Use the pipe symbol "|" exactly as shown with a single space on both sides.
+                        8. There must be exactly 4 options.
+                        9. The last part must be the FULL correct answer text (not A/B/C/D).
+                        10. The quiz must be logically based on the Source.
+
+                        OUTPUT STRUCTURE (STRICT):
+
+                        Quiz Title
+                        open
+                        Question | Option A | Option B | Option C | Option D | Correct Answer Text
+
+                        Repeat the question line until there are exactly ${n} questions.
+
+                        If you cannot follow the format EXACTLY, output nothing.
+
+                        Source:
+                        ${source}`;
+
             navigator.clipboard.writeText(p);
             showToast("Prompt Copied");
         }
