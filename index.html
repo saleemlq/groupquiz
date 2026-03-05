@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LQ Quizzes</title>
+    <title>Group Quizzes</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap");
@@ -324,7 +324,7 @@
 
     <aside id="sidebar" class="sidebar flex flex-col">
         <div class="p-6 border-b flex justify-between items-center">
-            <h2 class="text-tiny">LQ Quizzes</h2>
+            <h2 class="text-tiny">Group Quizzes</h2>
 
             <button onclick="verifyAdmin(adminPass)" class="p-2 rounded-lg bg-zinc-900 hover:text-accent">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -346,7 +346,7 @@
 
     <main class="main-content">
         <header id="mainHeader" class="p-6 border-b flex justify-between items-center bg-black/20 backdrop-blur-md">
-            <h1 class="h-medium text-accent italic">LQ QUIZZES</h1>
+            <h1 class="h-medium text-accent italic">GROUP QUIZZES</h1>
             <button id="authBtn" onclick="showModal()"
                 class="text-tiny border border-zinc-800 px-6 py-2 rounded-full hover:border-white">
                 Admin Login
@@ -379,14 +379,14 @@
         const nameInput = document.getElementById("participantName");
 
         // Load saved name
-        const savedNameLocal = localStorage.getItem("lq_participant_name");
+        const savedNameLocal = localStorage.getItem("group_participant_name");
         if (savedNameLocal) {
             nameInput.value = savedNameLocal;
         }
 
         // Save while typing
         nameInput.addEventListener("input", () => {
-            localStorage.setItem("lq_participant_name", nameInput.value.trim());
+            localStorage.setItem("group_participant_name", nameInput.value.trim());
         });
 
         function showToast(m) {
@@ -677,7 +677,7 @@ Question | A | B | C | D | Correct"
 
         function copyAiPrompt() {
             const n = document.getElementById("qCount").value;
-            const p = `Act as LQ Quiz Generator. Convert source to exactly ${n} questions. Return ONLY raw text.\nFormat:\nQuiz Title\nopen\nQuestion | Opt A | Opt B | Opt C | Opt D | Correct Answer Text\n\nSource: ${document.getElementById("rawInput").value}`;
+            const p = `Act as Strick Patterned Quiz Generator. Convert source to exactly ${n} questions. Return ONLY raw text.\nFormat:\nQuiz Title\nopen\nQuestion | Opt A | Opt B | Opt C | Opt D | Correct Answer Text\n\nSource: ${document.getElementById("rawInput").value}`;
             navigator.clipboard.writeText(p);
             showToast("Prompt Copied");
         }
@@ -711,7 +711,7 @@ Question | A | B | C | D | Correct"
         }
 
         function confirmQuickStart() {
-            const savedName = localStorage.getItem("lq_participant_name");
+            const savedName = localStorage.getItem("group_participant_name");
             closeQuickStart();
             startQuizAuto(quickQuizData.id, savedName);
         }
@@ -725,7 +725,7 @@ Question | A | B | C | D | Correct"
         async function checkUrlQuiz() {
             const params = new URLSearchParams(window.location.search);
             const quizId = params.get("id");
-            const savedName = localStorage.getItem("lq_participant_name");
+            const savedName = localStorage.getItem("group_participant_name");
 
             if (!quizId || !savedName) return;
 
@@ -760,7 +760,7 @@ Question | A | B | C | D | Correct"
 
         function shareQuiz(e, id) {
             e.stopPropagation();
-            const link = `https://lqquiz.vercel.app/?id=${id}`;
+            const link = `https://groupquiz.vnetlify.app/?id=${id}`;
             navigator.clipboard.writeText(link);
             showToast("Share Link Copied");
         }
