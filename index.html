@@ -790,7 +790,7 @@ Question | A | B | C | D | Correct"
 
         function shareQuiz(e, id) {
             e.stopPropagation();
-            const link = `https://groupquiz.vnetlify.app/?id=${id}`;
+            const link = `https://groupquiz.netlify.app/?id=${id}`;
             navigator.clipboard.writeText(link);
             showToast("Share Link Copied");
         }
