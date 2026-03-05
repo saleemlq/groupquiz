@@ -355,7 +355,7 @@
         <div id="stage" class="flex-1 overflow-y-auto flex flex-col items-center px-10 pb-10 no-scrollbar">
             <div id="welcomeBox" class="w-full max-w-xs space-y-4 text-center mt-20">
                 <h2 class="h-large mb-6">Portal</h2>
-                <input type="text" id="studentName" placeholder="Student Name" class="input-dark" />
+                <input type="text" id="participantName" placeholder="participant Name" class="input-dark" />
                 <input type="text" id="quizIdInput" placeholder="Quiz ID" class="input-dark" />
                 <button onclick="startQuiz()" class="btn-accent w-full mt-4">
                     JOIN SESSION
@@ -376,17 +376,17 @@
         let resultsData = [];
 
         // ===== AUTO NAME SAVE =====
-        const nameInput = document.getElementById("studentName");
+        const nameInput = document.getElementById("participantName");
 
         // Load saved name
-        const savedNameLocal = localStorage.getItem("lq_student_name");
+        const savedNameLocal = localStorage.getItem("lq_participant_name");
         if (savedNameLocal) {
             nameInput.value = savedNameLocal;
         }
 
         // Save while typing
         nameInput.addEventListener("input", () => {
-            localStorage.setItem("lq_student_name", nameInput.value.trim());
+            localStorage.setItem("lq_participant_name", nameInput.value.trim());
         });
 
         function showToast(m) {
@@ -547,12 +547,12 @@ Question | A | B | C | D | Correct"
             document.getElementById("grid").innerHTML = activeParticipants
                 .map((s) => {
                     // We need to find the original index in the resultsData array
-                    // so that inspectStudent(qId, userIdx) still points to the right person
+                    // so that inspectparticipant(qId, userIdx) still points to the right person
                     const originalIndex = quiz.results.indexOf(s);
 
                     return `
                 <div class="flex items-center p-4 bg-zinc-900/40 rounded-xl border border-zinc-800 cursor-pointer hover:border-accent" 
-                     onclick="inspectStudent('${id}', ${originalIndex})">
+                     onclick="inspectparticipant('${id}', ${originalIndex})">
                     <span class="w-40 font-bold truncate">${s.userName}</span>
                     <div class="bar-wrap">
                         <div class="bar-fill" style="width:${(s.score / s.total) * 100}%"></div>
@@ -563,7 +563,7 @@ Question | A | B | C | D | Correct"
                 .join("");
         }
 
-        function inspectStudent(qId, userIdx) {
+        function inspectparticipant(qId, userIdx) {
             const s = resultsData.find((q) => q.id === qId).results[userIdx];
             document.querySelector(".main-content").classList.add("squish");
             document.querySelector(".inspector").classList.add("active");
@@ -623,7 +623,7 @@ Question | A | B | C | D | Correct"
 
         async function startQuiz() {
             const id = document.getElementById("quizIdInput").value;
-            const n = document.getElementById("studentName").value;
+            const n = document.getElementById("participantName").value;
             if (!id || !n) {
                 alert("Please enter both Name and Quiz ID");
                 return;
@@ -711,13 +711,13 @@ Question | A | B | C | D | Correct"
         }
 
         function confirmQuickStart() {
-            const savedName = localStorage.getItem("lq_student_name");
+            const savedName = localStorage.getItem("lq_participant_name");
             closeQuickStart();
             startQuizAuto(quickQuizData.id, savedName);
         }
 
         function startQuizAuto(id, name) {
-            document.getElementById("studentName").value = name;
+            document.getElementById("participantName").value = name;
             document.getElementById("quizIdInput").value = id;
             startQuiz();
         }
@@ -725,7 +725,7 @@ Question | A | B | C | D | Correct"
         async function checkUrlQuiz() {
             const params = new URLSearchParams(window.location.search);
             const quizId = params.get("id");
-            const savedName = localStorage.getItem("lq_student_name");
+            const savedName = localStorage.getItem("lq_participant_name");
 
             if (!quizId || !savedName) return;
 
